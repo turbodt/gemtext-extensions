@@ -20,7 +20,7 @@ CFLAGS = -Wall -Wextra -fPIC -g
 
 SRC = \
 	$(wildcard $(SRC_DIR)/*.c) \
-	$(wildcard $(SRC_DIR)/smart-lists/*.c) \
+	$(wildcard $(SRC_DIR)/smart-list/*.c) \
 	$(wildcard $(SRC_DIR)/thematic-break/*.c) \
 	$(wildcard $(SRC_DIR)/markdown-link/*.c) \
 
@@ -46,7 +46,7 @@ shared: $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBRARIES) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR) $(SHARED_LIB) $(STATIC_LIB)
