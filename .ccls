@@ -1,0 +1,4 @@
+gcc
+%c -I./include/
+%c -I./external/gemtext/include
+-std=c11
