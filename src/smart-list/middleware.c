@@ -10,7 +10,7 @@ static int is_list_item(CharIterWithSavePoints *);
 static GemtextMiddleware middleware = {.call=call,};
 
 
-GemtextMiddleware * gemtext_smart_lists_get_middleware(void) {
+GemtextMiddleware * gemtext_smart_list_get_middleware(void) {
     return &middleware;
 };
 

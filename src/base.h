@@ -3,7 +3,7 @@
 
 
 #include "../include/gemtext-extensions/config.h"
-#include "../include/gemtext-extensions/smart-lists.h"
+#include "../include/gemtext-extensions/smart-list.h"
 #include "../include/gemtext-extensions/thematic-break.h"
 #include "../include/gemtext-extensions/markdown-link.h"
 
