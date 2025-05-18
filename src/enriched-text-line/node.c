@@ -2,6 +2,10 @@
 #include <gemtext/extension.h>
 
 
+typedef UPTR(GemtextNode)(*ChildFactory)(
+    CharIterWithSavePoints *,
+    GemtextConfig const *
+);
 typedef struct {
     size_t position;
 } ChildInfo;
@@ -44,7 +48,10 @@ static GemtextErrType vtable_set_content_from_iter(
 static char const * vtable_get_text(GemtextEnrichedTL const *);
 static size_t vtable_get_text_size(GemtextEnrichedTL const *);
 static size_t vtable_get_child_position(GemtextEnrichedTL const *, size_t);
-static UPTR(GemtextNode) get_child_from_buffer(CharIterWithSavePoints *);
+static UPTR(GemtextNode) get_child_from_buffer(
+    CharIterWithSavePoints *,
+    GemtextConfig const *
+);
 static GemtextErrType append_child(GemtextEnrichedTLImpl *, UPTR(GemtextNode));
 static size_t remove_children(GemtextEnrichedTLImpl *);
 static GemtextErrType trim_text(GemtextEnrichedTLImpl *);
@@ -80,7 +87,17 @@ static GemtextEnrichedTLVTable vtable = {
 
 
 UPTR(GemtextEnrichedTL) gemtext_enriched_tl_make(void) {
-    UPTR(GemtextEnrichedTLImpl) impl = ALLOC(GemtextEnrichedTLImpl, 1);
+    GemtextConfig const * config = gemtext_config_default_get();
+    return gemtext_enriched_tl_make_w_config(config);
+}
+
+
+UPTR(GemtextEnrichedTL) gemtext_enriched_tl_make_w_config(
+    GemtextConfig const *config
+) {
+    GemtextConfigMem const * memory_strat = &config->memory_strat;
+    UPTR(GemtextEnrichedTLImpl) impl =
+        memory_strat->alloc(sizeof(GemtextEnrichedTLImpl));
     if (!impl) {
         return NULL;
     }
@@ -91,12 +108,13 @@ UPTR(GemtextEnrichedTL) gemtext_enriched_tl_make(void) {
     impl->text_capacity = 0;
     if (
         buffer_ops->ensure.has_capacity(
+            *memory_strat,
             (void **)&impl->text,
             &impl->text_capacity,
             1
         )
     ) {
-        FREE(impl);
+        memory_strat->free(impl);
         return NULL;
     }
     impl->text[0] = '\0';
@@ -105,8 +123,8 @@ UPTR(GemtextEnrichedTL) gemtext_enriched_tl_make(void) {
     GemtextErrType err;
     err = gemtext_container_init(&impl->as.container, &vtable.container);
     if (err != GEMTEXT_ERR__OK) {
-        FREE(impl);
-        FREE(impl->text);
+        memory_strat->free(impl);
+        memory_strat->free(impl->text);
         return NULL;
     }
 
@@ -119,8 +137,9 @@ size_t vtable_destroy(UPTR(GemtextNode) interface_node) {
         return 0;
     }
     UPTR(GemtextEnrichedTLImpl) impl = (UPTR(void)) interface_node;
+    GemtextConfigMem const *mem = &impl->as.node.memory_strat;
     if (impl->text) {
-        FREE(impl->text);
+        mem->free(impl->text);
         impl->text_size = 0;
         impl->text_capacity = 0;
     }
@@ -272,6 +291,7 @@ GemtextErrType vtable_set_content_from_iter(
         return GEMTEXT_ERR__INVALID_ARG;
     }
     GemtextEnrichedTLImpl *impl = (GemtextEnrichedTLImpl *)interface;
+    GemtextConfigMem const *memory_strat = &impl->as.node.memory_strat;
 
     remove_children(impl);
 
@@ -286,13 +306,15 @@ GemtextErrType vtable_set_content_from_iter(
             }
             break;
         }
-        child = get_child_from_buffer(iter);
+        // TODO: properly pass config
+        child = get_child_from_buffer(iter, gemtext_config_default_get());
 
         if (child) {
             err = append_child(impl, child);
             curr_char = iter->get(iter);
         } else {
             realloc_err = buffer_ops->ensure.has_capacity(
+                *memory_strat,
                 (void **) &impl->text,
                 &impl->text_capacity,
                 impl->text_size + 2
@@ -310,7 +332,7 @@ GemtextErrType vtable_set_content_from_iter(
 
     if (err != GEMTEXT_ERR__OK) {
         remove_children(impl);
-        FREE(impl->text);
+        memory_strat->free(impl->text);
         impl->text_size = 0;
         impl->text_capacity = 0;
     }
@@ -325,13 +347,18 @@ GemtextErrType vtable_append_at(
     GemtextNode *i_child,
     size_t index
 ) {
-    unsigned int type =(GemtextNodeTypeExt) gemtext_node_get_type(i_child);
-    switch(type) {
-        case GEMTEXT_NODE_TYPE__WIKILINK:
-        case GEMTEXT_NODE_TYPE__MD_LINK:
-            return gemtext_container_vtable_append_at(i_container, i_child, index);
+    unsigned int type = gemtext_node_get_type(i_child);
+    GemtextExtensionsConfig const config = gemtext_ext_get_current_config();
+    unsigned int const * p_allowed_type =
+        config.enriched_text_line.allowed_children_ids;
+
+    while (*p_allowed_type != 0 && *p_allowed_type != type) {
+        p_allowed_type++;
     }
-    return GEMTEXT_ERR__INVALID_OP;
+    if (*p_allowed_type == 0) {
+        return GEMTEXT_ERR__INVALID_OP;
+    }
+    return gemtext_container_vtable_append_at(i_container, i_child, index);
 };
 
 
@@ -370,11 +397,17 @@ size_t vtable_get_child_position(
 };
 
 
-UPTR(GemtextNode) get_child_from_buffer(CharIterWithSavePoints *iter) {
-    UPTR(GemtextNode) child = NULL;
+UPTR(GemtextNode) get_child_from_buffer(
+    CharIterWithSavePoints *iter,
+    GemtextConfig const *config
+) {
+    GemtextExtensionsConfig const ext_config = gemtext_ext_get_current_config();
+    ChildFactory p_factory = *ext_config.enriched_text_line.children_factories;
 
-    if (!child) {
-        child = (UPTR(GemtextNode)) gemtext_wikilink_make_from_iter(iter);
+    UPTR(GemtextNode) child = NULL;
+    while (p_factory && !child) {
+        child = p_factory(iter, config);
+        p_factory++;
     }
 
     return child;
@@ -385,6 +418,7 @@ GemtextErrType append_child(
     GemtextEnrichedTLImpl *impl,
     UPTR(GemtextNode) child
 ) {
+    GemtextConfigMem const *memory_strat = &impl->as.node.memory_strat;
     size_t const curr_pos = impl->text_size;
     GemtextContainer *container = &impl->as.interface.as.container;
     size_t const children_count = gemtext_container_get_children_count(
@@ -393,6 +427,7 @@ GemtextErrType append_child(
 
     size_t children_info_capacity = sizeof(ChildInfo) * children_count;
     int alloc_err = buffer_ops->ensure.has_capacity(
+        *memory_strat,
         (void **) &impl->children_info,
         &children_info_capacity,
         sizeof(ChildInfo) * (children_count + 1)

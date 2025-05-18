@@ -12,6 +12,14 @@ typedef struct {
     struct {
         unsigned int id;
     } markdown_link;
+    struct {
+        unsigned int id;
+        unsigned int const * allowed_children_ids;
+        GemtextNode * (**children_factories)(
+            CharIterWithSavePoints *,
+            GemtextConfig const *
+        );
+    } enriched_text_line;
 } GemtextExtensionsConfig;
 
 
