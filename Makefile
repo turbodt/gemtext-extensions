@@ -23,6 +23,7 @@ SRC = \
 	$(wildcard $(SRC_DIR)/smart-list/*.c) \
 	$(wildcard $(SRC_DIR)/thematic-break/*.c) \
 	$(wildcard $(SRC_DIR)/markdown-link/*.c) \
+	$(wildcard $(SRC_DIR)/enriched-text-line/*.c) \
 
 OBJ_DIR = build
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))

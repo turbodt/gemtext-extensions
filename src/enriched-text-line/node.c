@@ -307,7 +307,8 @@ GemtextErrType vtable_set_content_from_iter(
             break;
         }
         // TODO: properly pass config
-        child = get_child_from_buffer(iter, gemtext_config_default_get());
+        GemtextConfig const *config = gemtext_config_default_get();
+        child = get_child_from_buffer(iter, config);
 
         if (child) {
             err = append_child(impl, child);
@@ -402,11 +403,11 @@ UPTR(GemtextNode) get_child_from_buffer(
     GemtextConfig const *config
 ) {
     GemtextExtensionsConfig const ext_config = gemtext_ext_get_current_config();
-    ChildFactory p_factory = *ext_config.enriched_text_line.children_factories;
+    ChildFactory * p_factory = ext_config.enriched_text_line.children_factories;
 
     UPTR(GemtextNode) child = NULL;
-    while (p_factory && !child) {
-        child = p_factory(iter, config);
+    while (*p_factory && !child) {
+        child = (*p_factory)(iter, config);
         p_factory++;
     }
 
