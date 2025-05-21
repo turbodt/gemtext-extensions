@@ -14,6 +14,9 @@ typedef struct {
     } markdown_link;
     struct {
         unsigned int id;
+    } wikilink;
+    struct {
+        unsigned int id;
         unsigned int const * allowed_children_ids;
         GemtextNode * (**children_factories)(
             CharIterWithSavePoints *,
