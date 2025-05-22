@@ -7,6 +7,7 @@
 #include "../include/gemtext-extensions/thematic-break.h"
 #include "../include/gemtext-extensions/markdown-link.h"
 #include "../include/gemtext-extensions/wikilink.h"
+#include "../include/gemtext-extensions/hashtag.h"
 #include "../include/gemtext-extensions/enriched-text-line.h"
 
 

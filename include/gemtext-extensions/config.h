@@ -17,6 +17,9 @@ typedef struct {
     } wikilink;
     struct {
         unsigned int id;
+    } hashtag;
+    struct {
+        unsigned int id;
         unsigned int const * allowed_children_ids;
         GemtextNode * (**children_factories)(
             CharIterWithSavePoints *,

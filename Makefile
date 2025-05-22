@@ -24,6 +24,7 @@ SRC = \
 	$(wildcard $(SRC_DIR)/thematic-break/*.c) \
 	$(wildcard $(SRC_DIR)/markdown-link/*.c) \
 	$(wildcard $(SRC_DIR)/wikilink/*.c) \
+	$(wildcard $(SRC_DIR)/hashtag/*.c) \
 	$(wildcard $(SRC_DIR)/enriched-text-line/*.c) \
 
 OBJ_DIR = build
