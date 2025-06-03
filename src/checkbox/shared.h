@@ -1,0 +1,8 @@
+#ifndef GEMTEXT_EXTENSIONS_CHECKBOX_SHARED_H
+#define GEMTEXT_EXTENSIONS_CHECKBOX_SHARED_H
+
+
+#include "../shared.h"
+
+
+#endif

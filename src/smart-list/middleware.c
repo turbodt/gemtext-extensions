@@ -1,4 +1,4 @@
-#include "../shared.h"
+#include "./shared.h"
 #include "../char_iter_operations.h"
 
 
@@ -54,7 +54,7 @@ UPTR(GemtextNode) parse_list(GemtextParseState const *state) {
     CharIterWithSavePoints * iter = state->iter;
     GemtextConfig const * config = &state->parser->config;
 
-    UPTR(GemtextList) parent = gemtext_list_make_w_config(config);
+    UPTR(GemtextList) parent = gemtext_ext_list_make_w_config(config);
     if (!parent) {
         *state->p_err = GEMTEXT_ERR__ALLOC;
         return NULL;

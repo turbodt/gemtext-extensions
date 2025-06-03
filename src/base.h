@@ -9,6 +9,7 @@
 #include "../include/gemtext-extensions/wikilink.h"
 #include "../include/gemtext-extensions/hashtag.h"
 #include "../include/gemtext-extensions/enriched-text-line.h"
+#include "../include/gemtext-extensions/checkbox.h"
 
 
 #ifndef UPTR

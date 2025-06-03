@@ -22,7 +22,7 @@ static GemtextExtensionsConfig config = {
         .id = GEMTEXT_NODE_TYPE__EXTENSION + 2028,
     },
     .enriched_text_line = {
-        .id = GEMTEXT_NODE_TYPE__EXTENSION + 2030,
+        .id = GEMTEXT_NODE_TYPE__EXTENSION + 2050,
         .allowed_children_ids = (unsigned int []){
             GEMTEXT_NODE_TYPE__EXTENSION + 2026,
             GEMTEXT_NODE_TYPE__EXTENSION + 2027,
@@ -36,6 +36,9 @@ static GemtextExtensionsConfig config = {
             NULL,
         }
     },
+    .checkbox = {
+        .id = GEMTEXT_NODE_TYPE__EXTENSION + 2051,
+    },
 };
 
 
@@ -46,4 +49,9 @@ GemtextExtensionsConfig gemtext_ext_get_current_config(void) {
 
 void gemtext_ext_set_config(GemtextExtensionsConfig new_config) {
     config.thematic_break = new_config.thematic_break;
+    config.checkbox = new_config.checkbox;
+    config.enriched_text_line = new_config.enriched_text_line;
+    config.hashtag = new_config.hashtag;
+    config.wikilink = new_config.wikilink;
+    config.markdown_link = new_config.markdown_link;
 };

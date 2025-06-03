@@ -26,6 +26,7 @@ SRC = \
 	$(wildcard $(SRC_DIR)/wikilink/*.c) \
 	$(wildcard $(SRC_DIR)/hashtag/*.c) \
 	$(wildcard $(SRC_DIR)/enriched-text-line/*.c) \
+	$(wildcard $(SRC_DIR)/checkbox/*.c) \
 
 OBJ_DIR = build
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))

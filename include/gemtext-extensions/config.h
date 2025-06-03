@@ -26,6 +26,9 @@ typedef struct {
             GemtextConfig const *
         );
     } enriched_text_line;
+    struct {
+        unsigned int id;
+    } checkbox;
 } GemtextExtensionsConfig;
 
 
